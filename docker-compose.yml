@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: schulbuffet-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: schulbuffet
+    ports:
+      - "5432:5432"
+    volumes:
+      - schulbuffet-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: schulbuffet-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASS: admin123
+      DB_NAME: schulbuffet
+      NODE_ENV: development
+    depends_on:
+      - db
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./backend:/usr/src/app
+    command: sh -c "npm install && npm run start:dev"
+
+  frontend:
+    build: ./frontend
+    container_name: schulbuffet-frontend
+    restart: unless-stopped
+    environment:
+      API_URL: http://backend:3000
+    depends_on:
+      - backend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/usr/src/app
+    command: sh -c "npm install && npm run start"
+
+volumes:
+  schulbuffet-data:
