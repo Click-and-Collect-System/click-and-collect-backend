@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';      // Import ConfigModule (optional, für Umgebungsvariablen)
-import { SequelizeModule } from '@nestjs/sequelize'; // Import SequelizeModule
-import { User } from './sequelize/models/user.model'; 
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { AzureADStrategy } from './authentication/strategies/AzureADStrategy';
+import { GreetingsModule } from './greetings/greetings.module';
+import { AuthController } from './auth/auth.controller';
+import { MenuModule } from './menu/menu.module';
 
 // Datenbank-Verbindungsdaten hartkodiert (ersetzt die TypeORM-Konfiguration)
 const PORT = 8080;
@@ -13,16 +17,26 @@ const DATABASE_URL = 'postgres://admin:admin123@localhost:5432/schulbuffet';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    SequelizeModule.forRoot({
-      uri: DATABASE_URL,        // Komplette Verbindungs-URI für PostgreSQL
-      dialect: 'postgres',      // Sequelize-Dialect
-      models: [User],               // Hier Deine Sequelize-Modelle eintragen
-      logging: true,            // Optional, wie bei TypeORM aktiviert
-      // synchronize gibt es bei Sequelize nicht, Migrations werden empfohlen
-    }),
+    PassportModule.register({ defaultStrategy: 'AzureAD' }),
+      /*
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'admin',
+      password: 'admin123',
+      database: 'schulbuffet',
+      autoLoadEntities: true,
+      synchronize: true,
+
+
+    }),*/
+    GreetingsModule,
+    MenuModule,
+
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, AuthController],
+  providers: [AppService, AzureADStrategy],
 })
 export class AppModule {
   static readonly PORT = PORT;
