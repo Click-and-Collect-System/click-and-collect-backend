@@ -7,7 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AzureADStrategy } from './authentication/strategies/AzureADStrategy';
 import { GreetingsModule } from './greetings/greetings.module';
 import { AuthController } from './auth/auth.controller';
-
+import { MenuModule } from './menu/menu.module';
 
 
 @Module({
@@ -28,7 +28,7 @@ import { AuthController } from './auth/auth.controller';
 
     }),*/
     GreetingsModule,
-
+    MenuModule,
 
   ],
   controllers: [AppController, AuthController],
