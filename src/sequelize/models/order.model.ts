@@ -13,6 +13,8 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.DATE, allowNull: false })
   declare date: Date;
 
+  /* status noch als ENUM-Werte festlegen,
+   z. B. "offen", "abgeschlossen", "abgeholt".*/
   @Column({ type: DataType.STRING(20), allowNull: false })
   declare status: string;
 }
