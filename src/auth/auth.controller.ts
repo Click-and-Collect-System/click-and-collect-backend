@@ -1,23 +1,17 @@
 import { Controller, Post, Body } from '@nestjs/common';
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
-    @Post('verify')
-    verifyToken(@Body() body: any) {
-        const token = body.token;
+    constructor(private readonly authService: AuthService) {}
 
-        try {
-            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-            const email = payload.email || payload.upn || '';
+    @Post('login')
+    async login(@Body('email') email: string) {
+        return this.authService.sendMagicLink(email);
+    }
 
-
-            if (email.endsWith('@htl-donaustadt.at')) {
-                return { authorized: true, email };
-            } else {
-                return { authorized: false, reason: 'Dies ist kein Schulverifizierter Account' };
-            }
-        } catch (err) {
-            return { authorized: false, reason: 'Falsches Tokenformat' };
-        }
+    @Post('callback')
+    async verify(@Body('token') token: string) {
+        return this.authService.verifyMagicLink(token);
     }
 }
