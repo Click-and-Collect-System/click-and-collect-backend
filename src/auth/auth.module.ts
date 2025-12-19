@@ -6,9 +6,11 @@ import { User } from '../sequelize/models/user.model';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy'; // Das erstellen wir gleich noch kurz
+import { MailModule } from '../mail/mail.module';
 
 @Module({
     imports: [
+        MailModule,
         SequelizeModule.forFeature([User]), // Zugriff auf User-Tabelle
         JwtModule.registerAsync({
             imports: [ConfigModule],
@@ -23,4 +25,4 @@ import { JwtStrategy } from './jwt.strategy'; // Das erstellen wir gleich noch k
     providers: [AuthService, JwtStrategy],
     exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

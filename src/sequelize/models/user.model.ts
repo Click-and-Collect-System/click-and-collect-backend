@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
+import { Order } from './order.model';
 
 @Table({ tableName: 'users', timestamps: true })
 export class User extends Model<User> {
@@ -14,7 +15,7 @@ export class User extends Model<User> {
   @Column({ type: DataType.STRING(50), allowNull: false, unique: true })
   declare email: string;
 
-  @Column({ type: DataType.STRING(255), allowNull: false })
+  @Column({ type: DataType.STRING(255), allowNull: true })
   declare password: string;
 
   @Column({
@@ -24,4 +25,8 @@ export class User extends Model<User> {
     comment: 'user: normal user, admin: CMS access'
   })
   declare role: 'user' | 'admin';
+
+  @HasMany(() => Order)
+  declare orders: Order[];
 }
+

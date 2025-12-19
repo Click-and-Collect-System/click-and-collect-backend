@@ -21,8 +21,9 @@ module.exports = {
         allowNull: false,
       },
       status: {
-        type: Sequelize.STRING(20),
+        type: Sequelize.ENUM('offen', 'in_bearbeitung', 'abholbereit', 'abgeholt', 'storniert'),
         allowNull: false,
+        defaultValue: 'offen',
       },
       createdAt: {
         type: Sequelize.DATE,

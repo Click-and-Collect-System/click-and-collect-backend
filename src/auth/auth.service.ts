@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '../sequelize/models/user.model';
-import * as nodemailer from 'nodemailer';
+import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,15 +13,61 @@ export class AuthService {
         private userModel: typeof User,
         private jwtService: JwtService,
         private configService: ConfigService,
-    ) {}
+        private mailService: MailService,
+    ) { }
 
-    // 1. Login anfordern (Mail senden)
-    async sendMagicLink(email: string) {
-        const user = await this.userModel.findOne({ where: { email } });
+    // Neuen Benutzer registrieren
+    async register(registerDto: RegisterDto) {
+        const { firstName, lastName, email } = registerDto;
 
-        // Falls User nicht existiert -> Fehler (oder optional registrieren)
+        // Prüfe ob User bereits existiert
+        const existingUser = await this.userModel.findOne({ where: { email } });
+        if (existingUser) {
+            throw new ConflictException('Ein Benutzer mit dieser E-Mail existiert bereits.');
+        }
+
+        // Erstelle neuen User (ohne Passwort, da Magic Link)
+        const user = await this.userModel.create({
+            firstName,
+            lastName,
+            email,
+            password: '', // Kein Passwort nötig bei Magic Link
+            role: 'user',
+        } as any);
+
+        // Sende direkt einen Magic Link
+        await this.sendMagicLink(email);
+
+        return {
+            message: 'Registrierung erfolgreich! Ein Login-Link wurde an deine E-Mail gesendet.',
+            user: { email: user.email, firstName: user.firstName, lastName: user.lastName }
+        };
+    }
+
+    // Benutzer anhand der ID finden
+    async findById(userId: number) {
+        const user = await this.userModel.findOne({ where: { user_id: userId } });
         if (!user) {
-            throw new NotFoundException('Benutzer nicht gefunden. Bitte registrieren.');
+            throw new NotFoundException('Benutzer nicht gefunden.');
+        }
+        return user;
+    }
+
+    // 1. Login anfordern (Mail senden) - erstellt User automatisch falls nicht vorhanden
+    async sendMagicLink(email: string) {
+        let user = await this.userModel.findOne({ where: { email } });
+
+        // Falls User nicht existiert -> automatisch erstellen
+        if (!user) {
+            // Email-Adresse aufspalten für Vor-/Nachname
+            const emailPrefix = email.split('@')[0];
+            user = await this.userModel.create({
+                firstName: emailPrefix,
+                lastName: '',
+                email,
+                password: '',
+                role: 'user',
+            } as any);
         }
 
         const payload = { email: user.email, sub: user.user_id };
@@ -32,7 +79,7 @@ export class AuthService {
         const link = `${frontendUrl}/login/callback?token=${token}`;
 
         // Mail versenden
-        await this.sendEmail(user.email, link);
+        await this.mailService.sendMagicLink(user.email, link);
 
         return { message: 'Magic Link wurde per E-Mail gesendet!' };
     }
@@ -62,27 +109,4 @@ export class AuthService {
         }
     }
 
-    private async sendEmail(email: string, link: string) {
-        const transporter = nodemailer.createTransport({
-            host: this.configService.get<string>('MAIL_HOST'),
-            port: this.configService.get<number>('MAIL_PORT'),
-            secure: false, // true für 465, false für andere Ports
-            auth: {
-                user: this.configService.get<string>('MAIL_USER'),
-                pass: this.configService.get<string>('MAIL_PASS'),
-            },
-        });
-
-        await transporter.sendMail({
-            from: this.configService.get<string>('MAIL_FROM'),
-            to: email,
-            subject: 'Dein Login Link für das Schulbuffet',
-            html: `
-        <h3>Willkommen zurück!</h3>
-        <p>Klicke auf den Link, um dich anzumelden:</p>
-        <p><a href="${link}">Jetzt einloggen</a></p>
-        <p>Der Link ist 15 Minuten gültig.</p>
-      `,
-        });
-    }
 }
