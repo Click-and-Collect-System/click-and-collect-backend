@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
+import { OrderItem } from './orderitem.model';
 
 @Table({ tableName: 'products', timestamps: true })
 export class Product extends Model<Product> {
@@ -8,12 +9,16 @@ export class Product extends Model<Product> {
   @Column({ type: DataType.STRING(50), allowNull: false })
   declare name: string;
 
-  @Column({ type: DataType.DECIMAL(5,3), allowNull: false })
+  @Column({ type: DataType.DECIMAL(5, 2), allowNull: false })
   declare price: number;
 
   @Column({ type: DataType.STRING(50), allowNull: false })
   declare category: string;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false })
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   declare available: boolean;
+
+  @HasMany(() => OrderItem)
+  declare orderItems: OrderItem[];
 }
+

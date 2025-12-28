@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType, ForeignKey } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import { Order } from './order.model';
 import { Product } from './product.model';
 
@@ -17,4 +17,11 @@ export class OrderItem extends Model<OrderItem> {
 
   @Column({ type: DataType.INTEGER, allowNull: false })
   declare quantity: number;
+
+  @BelongsTo(() => Order)
+  declare order: Order;
+
+  @BelongsTo(() => Product)
+  declare product: Product;
 }
+

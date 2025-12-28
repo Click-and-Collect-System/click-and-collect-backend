@@ -1,45 +1,38 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
-import { PassportModule } from '@nestjs/passport';
-import { AzureADStrategy } from './authentication/strategies/AzureADStrategy';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GreetingsModule } from './greetings/greetings.module';
-import { AuthController } from './auth/auth.controller';
-import { MenuModule } from './menu/menu.module';
-
-// Datenbank-Verbindungsdaten hartkodiert (ersetzt die TypeORM-Konfiguration)
-const PORT = 8080;
-const NODE_ENV = 'development';
-const DATABASE_URL = 'postgres://admin:admin123@localhost:5432/schulbuffet';
+import { AuthModule } from './auth/auth.module';
+import { ProductModule } from './product/product.module';
+import { OrderModule } from './order/order.module';
+import { SequelizeModule } from '@nestjs/sequelize';
 
 @Module({
   imports: [
+    // 1. Config laden (damit .env funktioniert)
     ConfigModule.forRoot({ isGlobal: true }),
-    PassportModule.register({ defaultStrategy: 'AzureAD' }),
-      /*
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'admin',
-      password: 'admin123',
-      database: 'schulbuffet',
-      autoLoadEntities: true,
-      synchronize: true,
 
+    // 2. Datenbank Verbindung aufbauen
+    SequelizeModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        dialect: 'postgres',
+        // Hier wird deine DATABASE_URL aus der .env Datei verwendet:
+        uri: configService.get<string>('DATABASE_URL'),
+        autoLoadModels: true, // Lädt automatisch Models (wie User)
+        synchronize: true,    // Erstellt Tabellen automatisch (nur für Dev!)
+      }),
+    }),
 
-    }),*/
+    // 3. Feature-Module
     GreetingsModule,
-    MenuModule,
-
+    AuthModule,
+    ProductModule,  // NEU: Produkte mit Datenbankanbindung
+    OrderModule,    // NEU: Bestellungen
   ],
-  controllers: [AppController, AuthController],
-  providers: [AppService, AzureADStrategy],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class AppModule {
-  static readonly PORT = PORT;
-  static readonly NODE_ENV = NODE_ENV;
-  static readonly DATABASE_URL = DATABASE_URL;
-}
+export class AppModule { }
