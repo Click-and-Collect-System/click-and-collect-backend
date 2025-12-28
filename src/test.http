@@ -1,132 +1,21 @@
-### ====================================
-### AUTH ENDPUNKTE
-### ====================================
+@host = http://localhost:8081
 
-### Registrierung
-POST http://localhost:3000/auth/register
+### SCHRITT 1: Login anfordern (Magic Link senden)
+# Ersetze die E-Mail unten durch die, die du gerade in die DB eingetragen hast!
+POST {{host}}/auth/login
 Content-Type: application/json
 
 {
-    "firstName": "Max",
-    "lastName": "Mustermann",
-    "email": "max@example.com"
+  "email": "210062@studierende.htl-donaustadt.at"
 }
 
-### Login (Magic Link anfordern)
-POST http://localhost:3000/auth/login
+### (Hier jetzt warten, bis die E-Mail ankommt, Link kopieren und Token extrahieren)
+
+### SCHRITT 2: Token verifizieren (Login abschließen)
+# Füge hier bei "token" den langen Text ein, der in deiner E-Mail hinter "?token=" stand
+POST {{host}}/auth/callback
 Content-Type: application/json
 
 {
-    "email": "max@example.com"
-}
-
-### Magic Link verifizieren (Token aus E-Mail)
-POST http://localhost:3000/auth/callback
-Content-Type: application/json
-
-{
-    "token": "HIER_DEN_TOKEN_AUS_DER_EMAIL_EINFUEGEN"
-}
-
-### Aktuellen Benutzer abrufen (Auth erforderlich)
-GET http://localhost:3000/auth/me
-Authorization: Bearer HIER_DEN_ACCESS_TOKEN_EINFUEGEN
-
-### ====================================
-### PRODUCT ENDPUNKTE (öffentlich)
-### ====================================
-
-### Alle verfügbaren Produkte
-GET http://localhost:3000/products
-
-### Produkte nach Kategorie
-GET http://localhost:3000/products/category/Snacks
-
-### Einzelnes Produkt
-GET http://localhost:3000/products/1
-
-### ====================================
-### PRODUCT ENDPUNKTE (Admin)
-### ====================================
-
-### Alle Produkte (inkl. nicht verfügbare)
-GET http://localhost:3000/products/admin/all
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-### Neues Produkt erstellen
-POST http://localhost:3000/products
-Content-Type: application/json
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-{
-    "name": "Käsekrainer",
-    "price": 3.50,
-    "category": "Snacks",
-    "available": true
-}
-
-### Produkt aktualisieren
-PUT http://localhost:3000/products/1
-Content-Type: application/json
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-{
-    "price": 3.80
-}
-
-### Verfügbarkeit umschalten
-PUT http://localhost:3000/products/1/toggle-availability
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-### Produkt löschen
-DELETE http://localhost:3000/products/1
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-### ====================================
-### ORDER ENDPUNKTE (Auth erforderlich)
-### ====================================
-
-### Neue Bestellung erstellen
-POST http://localhost:3000/orders
-Content-Type: application/json
-Authorization: Bearer USER_TOKEN_HIER
-
-{
-    "items": [
-        { "productId": 1, "quantity": 2 },
-        { "productId": 2, "quantity": 1 }
-    ]
-}
-
-### Meine Bestellungen abrufen
-GET http://localhost:3000/orders/my
-Authorization: Bearer USER_TOKEN_HIER
-
-### Einzelne Bestellung abrufen
-GET http://localhost:3000/orders/my/1
-Authorization: Bearer USER_TOKEN_HIER
-
-### Bestellung stornieren
-PUT http://localhost:3000/orders/my/1/cancel
-Authorization: Bearer USER_TOKEN_HIER
-
-### ====================================
-### ORDER ENDPUNKTE (Admin)
-### ====================================
-
-### Alle Bestellungen
-GET http://localhost:3000/orders
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-### Bestellungen nach Status
-GET http://localhost:3000/orders/status/pending
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-### Status ändern (z.B. auf "ready" für Abholung)
-PUT http://localhost:3000/orders/1/status
-Content-Type: application/json
-Authorization: Bearer ADMIN_TOKEN_HIER
-
-{
-    "status": "ready"
+  "token": "HIER_DEN_LANGEN_TOKEN_AUS_DER_EMAIL_EINFÜGEN"
 }

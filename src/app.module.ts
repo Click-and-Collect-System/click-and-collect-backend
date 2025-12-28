@@ -4,9 +4,8 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GreetingsModule } from './greetings/greetings.module';
 import { AuthModule } from './auth/auth.module';
-import { ProductModule } from './product/product.module';
-import { OrderModule } from './order/order.module';
-import { SequelizeModule } from '@nestjs/sequelize';
+import { MenuModule } from './menu/menu.module';
+import { SequelizeModule } from '@nestjs/sequelize'; // WICHTIG: Importieren
 
 @Module({
   imports: [
@@ -26,11 +25,10 @@ import { SequelizeModule } from '@nestjs/sequelize';
       }),
     }),
 
-    // 3. Feature-Module
+    // 3. Deine Feature-Module
     GreetingsModule,
+    MenuModule,
     AuthModule,
-    ProductModule,  // NEU: Produkte mit Datenbankanbindung
-    OrderModule,    // NEU: Bestellungen
   ],
   controllers: [AppController],
   providers: [AppService],
