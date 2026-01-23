@@ -1,5 +1,6 @@
-import { Table, Column, Model, DataType, ForeignKey } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo, HasMany } from 'sequelize-typescript';
 import { User } from './user.model';
+import { OrderItem } from './orderitem.model';
 
 @Table({ tableName: 'orders', timestamps: true })
 export class Order extends Model<Order> {
@@ -14,9 +15,16 @@ export class Order extends Model<Order> {
   declare date: Date;
 
   @Column({
-  type: DataType.ENUM('offen', 'in_bearbeitung', 'abholbereit', 'abgeholt', 'storniert'),
-  allowNull: false,
-  defaultValue: 'offen',
-})
-declare status: 'offen'| 'in_bearbeitung'| 'abholbereit'| 'abgehot'| 'Storniert';
+    type: DataType.ENUM('offen', 'in_bearbeitung', 'abholbereit', 'abgeholt', 'storniert'),
+    allowNull: false,
+    defaultValue: 'offen'
+  })
+  declare status: string;
+
+  @BelongsTo(() => User)
+  declare user: User;
+
+  @HasMany(() => OrderItem)
+  declare items: OrderItem[];
 }
+

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '../sequelize/models/user.model';
@@ -16,9 +16,21 @@ export class AuthService {
         private mailService: MailService,
     ) { }
 
+    // Erlaubte Email, also nur Schulkonten
+    private readonly ALLOWED_EMAIL_DOMAIN = '@htl-donaustadt.at';
+
+    private validateEmailDomain(email: string): void {
+        if (!email.toLowerCase().endsWith(this.ALLOWED_EMAIL_DOMAIN)) {
+            throw new BadRequestException(`Nur Schulverifizierte Nutzer sind erlaubt.`);
+        }
+    }
+
     // Neuen Benutzer registrieren
     async register(registerDto: RegisterDto) {
         const { firstName, lastName, email } = registerDto;
+
+        // Prüfen ob die Email ein Schulkonto ist
+        this.validateEmailDomain(email);
 
         // Prüfe ob User bereits existiert
         const existingUser = await this.userModel.findOne({ where: { email } });
@@ -53,8 +65,11 @@ export class AuthService {
         return user;
     }
 
-    // 1. Login anfordern (Mail senden) - erstellt User automatisch falls nicht vorhanden
+    // 1. Login anfordern (Mail senden), erstellt User automatisch falls nicht vorhanden
     async sendMagicLink(email: string) {
+        // Prüfe ob Email-Domain erlaubt ist
+        this.validateEmailDomain(email);
+
         let user = await this.userModel.findOne({ where: { email } });
 
         // Falls User nicht existiert -> automatisch erstellen

@@ -33,4 +33,4 @@ import { SequelizeModule } from '@nestjs/sequelize'; // WICHTIG: Importieren
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
