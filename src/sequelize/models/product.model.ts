@@ -18,6 +18,10 @@ export class Product extends Model<Product> {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   declare available: boolean;
 
+  @Column({ type: DataType.STRING(255), allowNull: true })
+  declare imageUrl?: string;
+
+
   @HasMany(() => OrderItem)
   declare orderItems: OrderItem[];
 }
